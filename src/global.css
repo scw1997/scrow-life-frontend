@@ -3,7 +3,9 @@
 *::after {
     box-sizing: border-box;
 }
-
+:root{
+    --theme-color:#d39f41
+}
 html {
 
 }

@@ -1,18 +1,36 @@
 <script setup lang="ts">
-import logo from './assets/logo.png';
+import { NConfigProvider, NMessageProvider, useMessage, type GlobalThemeOverrides } from 'naive-ui';
+import Header from '@/components/Header/Header.vue';
+const themeColor = '#e59c18';
+// #d39f41
+const themeOverrides: GlobalThemeOverrides = {
+    common: {
+        primaryColor: themeColor
+    },
+    Button: {
+        textColor: themeColor
+    },
+    Select: {
+        peers: {
+            InternalSelection: {
+                textColor: themeColor
+            }
+        }
+    }
+};
 </script>
 
 <template>
-    <div class="layout">
-        <section class="header">
-            <main class="main">
-                <section class="left">
-                    <img class="logo" :src="logo" alt="" />
-                    <div class="title">卷窝</div>
-                </section>
-            </main>
-        </section>
-    </div>
+    <NConfigProvider :theme-overrides="themeOverrides">
+        <NMessageProvider>
+            <div class="layout">
+                <Header />
+                <div class="router-view">
+                    <RouterView />
+                </div>
+            </div>
+        </NMessageProvider>
+    </NConfigProvider>
 </template>
 
 <style scoped lang="less">
@@ -23,35 +41,9 @@ import logo from './assets/logo.png';
     width: 100vw;
     overflow: auto;
     background-color: #f0f0f0;
-    .header {
-        height: 60px;
-        background-color: #fff;
-        width: 100%;
-        position: sticky;
-        top: 0;
-        left: 0;
-        .main {
-            width: 1200px;
-            height: 100%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            .left {
-                flex: auto;
-                display: flex;
-                align-items: center;
-                .logo {
-                    height: 40px;
-                    display: flex;
-                }
-                .title {
-                    font-size: 20px;
-                    font-weight: bold;
-                    padding-left: 10px;
-                    color: #d39f41;
-                }
-            }
-        }
+    .router-view {
+        width: 1200px;
+        margin: 0 auto;
     }
 }
 </style>
