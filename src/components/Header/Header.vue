@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { NButton, NInputGroup, NInput, useMessage } from 'naive-ui';
+import { NButton, NInputGroup, NInput, useMessage, NSpace } from 'naive-ui';
+import { useRouter } from 'vue-router';
 import logo from '@/assets/logo.png';
 import message from '@/utils/message.ts';
 window.$message = useMessage();
+const router = useRouter();
 const handleSearch = async () => {};
 </script>
 
@@ -14,10 +16,34 @@ const handleSearch = async () => {};
                 <div class="title">卷窝</div>
             </section>
             <section class="right">
-                <NInputGroup>
-                    <NInput round class="input-search" placeholder="请输入搜索内容" />
-                    <NButton type="primary" ghost @click="handleSearch">搜索</NButton>
-                </NInputGroup>
+                <NSpace align="center">
+                    <NInputGroup>
+                        <NInput round class="input-search" placeholder="请输入搜索内容" />
+                        <NButton type="primary" ghost @click="handleSearch">搜索</NButton>
+                    </NInputGroup>
+                    <NButton
+                        text
+                        type="primary"
+                        @click="
+                            () => {
+                                router.push({ name: 'login' });
+                            }
+                        "
+                    >
+                        登录
+                    </NButton>
+                    <NButton
+                        text
+                        type="primary"
+                        @click="
+                            () => {
+                                router.push({ name: 'register' });
+                            }
+                        "
+                    >
+                        注册
+                    </NButton>
+                </NSpace>
             </section>
         </main>
     </section>
@@ -26,13 +52,13 @@ const handleSearch = async () => {};
 <style scoped lang="less">
 .header {
     height: 60px;
+    flex: none;
     background-color: #fff;
     width: 100%;
-    position: sticky;
-    top: 0;
-    left: 0;
+    min-width: 1200px;
     .main {
-        width: 1200px;
+        width: 100%;
+        max-width: 1200px;
         padding: 0 20px;
         height: 100%;
         margin: 0 auto;

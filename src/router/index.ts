@@ -9,6 +9,29 @@ const router = createRouter({
             name: 'index',
             component: () => import('@/pages/Dashboard/Dashboard.vue') // 路由级懒加载
         },
+        {
+            path: '/auth',
+            name: 'auth',
+            component: () => import('@/pages/Auth/Auth.vue'), // 路由级懒加载
+            children: [
+                {
+                    path: 'login',
+                    name: 'login',
+                    component: () => import('@/pages/Auth/Login.vue') // 路由级懒加载
+                },
+                {
+                    path: 'register',
+                    name: 'register',
+                    component: () => import('@/pages/Auth/Register.vue') // 路由级懒加载
+                },
+                {
+                    path: 'findpwd',
+                    name: 'findpwd',
+                    component: () => import('@/pages/Auth/FindPwd.vue') // 路由级懒加载
+                }
+            ]
+        },
+
         // 404 兜底路由，必须放在最后
         {
             path: '/:pathMatch(.*)*',

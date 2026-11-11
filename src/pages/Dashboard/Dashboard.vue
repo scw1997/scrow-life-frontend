@@ -1,43 +1,74 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { TreeOptions } from 'naive-ui/es/tree/src/interface';
-import { NTree } from 'naive-ui';
+import { NMenu, NTabs, NTabPane, NSkeleton } from 'naive-ui';
+import { navOptions } from '@/pages/Dashboard/config.ts';
+import { ref, watch, watchEffect } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
+const navValue = ref<string>('all');
+const dataList = ref<any[]>([]);
+const loading = ref<boolean>(false);
+const tab = ref<'recommend' | 'latest' | 'follow'>('recommend');
+const handleUpdateValue = (value: string) => {
+    navValue.value = value;
+    router.push({ name: route.name, query: { ...route.query, nav: value } });
+};
 
-const kindBarOptions: TreeOptions = [
-    {
-        label: '综合',
-        key: 'all',
-        checkboxDisabled: true
-    },
-    {
-        label: '生活圈',
-        key: 'life',
-        children: [
-            {
-                label: '婚恋区',
-                key: 'love'
-            },
-            {
-                label: '职场区',
-                key: 'career'
-            }
-        ]
+watch(
+    () => route.query,
+    () => {
+        // navValue.value = route.query.nav as string;
     }
-];
+);
 </script>
 
 <template>
-    <section class="kind-bar">
-        <NTree
-            block-line
-            :data="kindBarOptions"
-            :default-expanded-keys="['all']"
-            expand-on-click
-        ></NTree>
-    </section>
+    <div class="dashboard">
+        <section class="nav-bar">
+            <NMenu :options="navOptions" :value="navValue" @update:value="handleUpdateValue" />
+        </section>
+        <section class="list-bar">
+            <n-tabs type="line" :value="tab" size="large" @update:value="(value) => (tab = value)">
+                <n-tab-pane name="recommend" tab="推荐">
+                    <template v-if="tab === 'recommend' && loading">
+                        <n-skeleton text :repeat="3" />
+                    </template>
+                    <template v-else-if="tab === 'recommend' && dataList.length === 0">
+                        暂无数据
+                    </template>
+                    <template v-else>
+                        <div v-for="item in dataList" :key="item.id">
+                            {{ item.title }}
+                        </div>
+                    </template>
+                </n-tab-pane>
+                <n-tab-pane name="latest" tab="最新">Hey Jude</n-tab-pane>
+                <n-tab-pane name="follow" tab="关注">七里香</n-tab-pane>
+            </n-tabs>
+        </section>
+    </div>
 </template>
 
 <style scoped lang="less">
-.kind-bar {
+.dashboard {
+    display: flex;
+    padding: 20px 20px 0 20px;
+    height: 100%;
+}
+.nav-bar {
+    flex: 0 0 200px;
+    background-color: #fff;
+    border-radius: 10px;
+    height: max-content;
+    max-height: calc(100% - 20px);
+    overflow: auto;
+}
+.list-bar {
+    flex: auto;
+    padding: 0 20px 20px 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    margin-left: 20px;
+    height: max-content;
 }
 </style>

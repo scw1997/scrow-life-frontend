@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { NConfigProvider, NMessageProvider, useMessage, type GlobalThemeOverrides } from 'naive-ui';
 import Header from '@/components/Header/Header.vue';
+import { dateZhCN, zhCN } from 'naive-ui';
 const themeColor = '#e59c18';
 // #d39f41
 const themeOverrides: GlobalThemeOverrides = {
     common: {
-        primaryColor: themeColor
+        primaryColor: themeColor,
+        primaryColorHover: themeColor
     },
     Button: {
-        textColor: themeColor
+        // textColor: '#eeeeee',
+        // textColorHover: themeColor
     },
     Select: {
         peers: {
@@ -21,7 +24,7 @@ const themeOverrides: GlobalThemeOverrides = {
 </script>
 
 <template>
-    <NConfigProvider :theme-overrides="themeOverrides">
+    <NConfigProvider :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
         <NMessageProvider>
             <div class="layout">
                 <Header />
@@ -44,6 +47,7 @@ const themeOverrides: GlobalThemeOverrides = {
     .router-view {
         width: 1200px;
         margin: 0 auto;
+        height: calc(100vh - 60px);
     }
 }
 </style>
