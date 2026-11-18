@@ -1,33 +1,18 @@
-import Axios, { type AxiosError, type AxiosInstance, type AxiosRequestConfig, type   AxiosResponse } from 'axios';
-
+import Axios, {
+    AxiosError,
+    type AxiosInstance,
+    type AxiosRequestConfig,
+    type AxiosResponse
+} from 'axios';
+import useGlobalStore from '@/store';
+import { environment, generateDeviceID } from '@/utils/tools.ts';
+import router from '@/router';
+import notification from '@/utils/notification.ts';
+const globalStore = useGlobalStore();
 const CancelToken = Axios.CancelToken;
 
 type CustomConfig = {
     isControl?: boolean; //为true则在服务端成功返回响应数据时，不进行code报错判断提示，由开发自行控制
-};
-
-export const notifyError = async (code: string | number, message: string, onClose?: () => void) => {
-
-    let type, textPrefix;
-    switch (true) {
-        case String(code) === '401':
-            // type = 'info';
-            // textPrefix = '系统提示';
-            // break;
-            onClose?.();
-            return;
-        default:
-            type = 'error';
-            textPrefix = '请求失败';
-    }
-    notification[type]({
-        key: Date.now(),
-        message: `${textPrefix} ${code || 'Error'}`,
-        description: message,
-        placement: 'topLeft',
-        duration: 3,
-        onClose: onClose
-    });
 };
 
 export type HttpMethod = (
@@ -40,14 +25,14 @@ const instance: AxiosInstance = Axios.create({
     timeout: 30000
 });
 
-export const deviceIdKey = 'robot-pc-device-id';
-let storageDeviceId = localStorage.getItem(deviceIdKey);
+export const deviceIdKey = 'scrow-life-device-id';
+let storageDeviceId = localStorage.getItem(deviceIdKey) || '';
 /**
  * 拦截器
  */
 instance.interceptors.request.use(
     async (config) => {
-        const token = useGlobalStore.getState().token;
+        const token = useGlobalStore().token;
         if (config.method === 'post' && !config.headers['Content-Type']) {
             config.headers['Content-Type'] = 'application/json';
         }
@@ -72,7 +57,7 @@ instance.interceptors.response.use(
     },
     (err: AxiosError) => {
         console.log('err', err);
-        const clearUserStorage = useGlobalStore.getState().clearUserStorage;
+        const clearUserStorage = useGlobalStore().clearUserStorage;
         if (err.code === 'ERR_NETWORK') {
             return Promise.reject(new AxiosError('网络请求失败，请检查后重试', '-1'));
         }
@@ -89,7 +74,7 @@ instance.interceptors.response.use(
                 isNotifying = true;
                 //登录状态失效
                 clearUserStorage();
-                jumpTokenInvalidPage();
+                router.replace({ name: 'login' });
                 return Promise.reject(new AxiosError('登录状态已失效，请重新登录', '401'));
             case 403:
                 //登录失败（例如非管理员）
@@ -118,12 +103,12 @@ const handleRes = async (
     reject: (reason: any) => void,
     config?: Parameters<HttpMethod>[2]
 ) => {
-    const clearUserStorage = useGlobalStore.getState().clearUserStorage;
+    const clearUserStorage = useGlobalStore().clearUserStorage;
     if (res?.status === 200) {
         let { code, msg, data } = res?.data || {};
 
         switch (code) {
-            case 0:
+            case 200:
                 return config?.isControl ? resolve(res?.data) : resolve(data);
             default:
                 if (config?.isControl) {
@@ -132,52 +117,35 @@ const handleRes = async (
                 if (code === 401) {
                     isNotifying = true;
                     clearUserStorage();
-                    jumpTokenInvalidPage();
-                    notifyError(code, msg, () => {
-                        isNotifying = false;
-                    });
-                    return;
-                }
-                if (code === 9001) {
-                    Modal.open({
-                        title: '提示',
-                        footer: null,
-                        content: (props) => <div>{msg}</div>
-                    });
-                    Toast.clear();
-                    reject(msg);
-                    return;
-                }
-                if (code === 9002) {
-                    Toast.info(msg);
-                    reject(msg);
+                    router.replace({ name: 'login' });
+                    notification.error('登录状态失效', msg);
                     return;
                 }
 
-                notifyError(code, msg);
+                notification.error(`请求异常：${code}`, msg);
 
                 reject(msg);
         }
     } else {
         const { statusText = '数据请求失败' } = res || {};
         if (!config?.isControl && !isNotifying) {
-            notifyError(res?.status, statusText);
+            notification.error(`请求异常：${String(res?.status)}`, statusText);
         }
         reject(statusText);
     }
 };
 
-export let cancelReqFun = (msg: string) => {
+export let cancelReqFun = () => {
     //取消当前正在执行的请求
     //
 };
 
-const createHttpMethod = (method: 'get' | 'post' | 'put' | 'delete', ...rest) => {
+const createHttpMethod = (method: 'get' | 'post' | 'put' | 'delete', ...rest: any[]) => {
     const [url, data, config] = rest;
     return new Promise((resolve, reject) => {
         instance({
             method,
-            url: environment.apiHost + url,
+            url: environment.apiOrigin + url,
             params: method === 'get' ? data : {},
             data: method === 'get' ? {} : data,
             cancelToken: new CancelToken(function (cancel) {
@@ -191,9 +159,7 @@ const createHttpMethod = (method: 'get' | 'post' | 'put' | 'delete', ...rest) =>
             .catch((err: { code: string | number; message: string }) => {
                 const { code, message } = err;
 
-                notifyError(code, message, () => {
-                    isNotifying = false;
-                });
+                notification.error(`请求异常：${String(code)}`, message);
                 reject(message);
             });
     });
@@ -202,15 +168,11 @@ const createHttpMethod = (method: 'get' | 'post' | 'put' | 'delete', ...rest) =>
 const httpMethods: Record<Parameters<typeof createHttpMethod>[0], HttpMethod> = (
     ['get', 'post', 'put', 'delete'] as const
 ).reduce(
-    (pre, cur, array) => {
+    (pre, cur) => {
+        // @ts-ignore
         pre[cur] = (...params: any[]) => createHttpMethod(cur, ...params);
         return pre;
     },
-    {
-        get: null,
-        post: null,
-        delete: null,
-        put: null
-    }
+    {} as Record<Parameters<typeof createHttpMethod>[0], HttpMethod>
 );
 export default httpMethods;

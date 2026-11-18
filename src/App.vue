@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { NConfigProvider, NMessageProvider, useMessage, type GlobalThemeOverrides } from 'naive-ui';
+import {
+    NConfigProvider,
+    NMessageProvider,
+    NNotificationProvider,
+    type GlobalThemeOverrides
+} from 'naive-ui';
 import Header from '@/components/Header/Header.vue';
 import { dateZhCN, zhCN } from 'naive-ui';
 const themeColor = '#e59c18';
@@ -26,12 +31,14 @@ const themeOverrides: GlobalThemeOverrides = {
 <template>
     <NConfigProvider :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
         <NMessageProvider>
-            <div class="layout">
-                <Header />
-                <div class="router-view">
-                    <RouterView />
+            <NNotificationProvider placement="top-left" :max="3">
+                <div class="layout">
+                    <Header />
+                    <div class="router-view">
+                        <RouterView />
+                    </div>
                 </div>
-            </div>
+            </NNotificationProvider>
         </NMessageProvider>
     </NConfigProvider>
 </template>

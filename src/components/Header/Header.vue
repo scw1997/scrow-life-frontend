@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { NButton, NInputGroup, NInput, useMessage, NSpace } from 'naive-ui';
+import { NButton, NInputGroup, NInput, useMessage, NSpace, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import logo from '@/assets/logo.png';
-import message from '@/utils/message.ts';
 window.$message = useMessage();
+window.$notification = useNotification();
 const router = useRouter();
 const handleSearch = async () => {};
 </script>

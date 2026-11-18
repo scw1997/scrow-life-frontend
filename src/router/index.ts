@@ -7,12 +7,12 @@ const router = createRouter({
         {
             path: '/dashboard',
             name: 'index',
-            component: () => import('@/pages/Dashboard/Dashboard.vue') // 路由级懒加载
+            component: () => import('@/pages/Dashboard/Index.vue') // 路由级懒加载
         },
         {
             path: '/auth',
             name: 'auth',
-            component: () => import('@/pages/Auth/Auth.vue'), // 路由级懒加载
+            component: () => import('@/pages/Auth/Index.vue'), // 路由级懒加载
             children: [
                 {
                     path: 'login',

@@ -10,8 +10,14 @@ import {
     type FormInst,
     type FormRules
 } from 'naive-ui';
-import { ref, h } from 'vue';
+import { ref, h, onMounted } from 'vue';
+import notification from '@/utils/notification.ts';
+import { Reg } from '@/utils/tools.ts';
+import http from '@/utils/http.ts';
+import { user } from '@/api';
+import message from '@/utils/message.ts';
 const formRef = ref<FormInst | null>(null);
+
 const model = ref({
     email: null,
     username: null,
@@ -50,7 +56,10 @@ const rules: FormRules = {
     email: {
         required: true,
         trigger: ['blur', 'input'],
-        message: '请输入邮箱'
+        message: '请输入正确的邮箱格式',
+        validator: (_, value) => {
+            return Reg.email.test(value) ? true : new Error('请输入正确的邮箱格式');
+        }
     },
     emailCode: {
         required: true,
@@ -70,6 +79,17 @@ const renderCountDown = (props: {
         { disabled: true, class: 'countdown-button' },
         `${props.minutes === 1 ? 60 : props.seconds}秒后可重新获取`
     );
+};
+
+const handleSendCode = async () => {
+    const email = model.value.email;
+    if (!email) {
+        return message.error('请输入邮箱');
+    }
+    message.loading(true);
+    await http.post(user.sendCode, { email: model.value.email });
+    message.loading(false);
+    countdownActive.value = true;
 };
 </script>
 
@@ -98,7 +118,7 @@ const renderCountDown = (props: {
                 <n-form-item label="邮箱验证码" path="emailCode">
                     <n-input v-model:value="model.emailCode" />
                 </n-form-item>
-                <NButton v-if="countdownActive === false" @click="countdownActive = true">
+                <NButton v-if="countdownActive === false" @click="handleSendCode">
                     获取验证码
                 </NButton>
                 <n-countdown
